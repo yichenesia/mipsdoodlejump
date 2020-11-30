@@ -16,6 +16,7 @@
 .text
 	lw $t0, displayAddress # $t0 stores the base address for display
 	lw $t5, colorone # $t1 stores the red colour code
+	lw $t6, colortwo
 
 DrawBranch: 	
 	add $t1, $zero, $zero # Loop increment variable, i
@@ -43,12 +44,20 @@ DrawBranchThree:
       	addi $t2, $zero, 5 # Length of a platform
  	addi $t0, $t0, 2048
 LOOPThree:
-	beq $t1, $t2, Exit
+	beq $t1, $t2, DrawDoodler
 	addi $t0, $t0, 4
 	sw $t5, 0($t0)
 	addi $t1, $t1, 1
 	j LOOPThree
 
+DrawDoodler: 
+	lw $t0, displayAddress
+	sw $t6, 4($t0)
+	sw $t6, 128($t0)
+	sw $t6, 136($t0)
+	sw $t6, 256($t0)
+	sw $t6, 264($t0)
+	
 Exit:
 	li $v0, 10 # terminate the program gracefully
 	syscall
