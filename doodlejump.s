@@ -15,18 +15,33 @@
 	
 .text
 	lw $t0, displayAddress # $t0 stores the base address for display
-	lw $t5, colorone # $t1 stores the red colour code
-	lw $t6, colortwo
+	lw $s0, colorone # $t1 stores the red colour code
+	lw $s1, colortwo
+
+Draw: 	
+	addi $a0, $t0, 160 # Initialize the input argument to the function, the leftmost element of the branch
+	jal DrawBranch	# Draw the branch
+	addi $a0, $t0, 1168 # Initialize the input argument to the function, the leftmost element of the branch
+	jal DrawBranch
+	addi $a0, $t0, 3136 # Initialize the input argument to the function, the leftmost element of the branch
+	jal DrawBranch
+	j Exit
+
 
 DrawBranch: 	
 	add $t1, $zero, $zero # Loop increment variable, i
       	addi $t2, $zero, 5 # Length of a platform
-      	addi $t0, $t0, 144
-LOOP: 	beq $t1, $t2, DrawBranchTwo
-	addi $t0, $t0, 4
-	sw $t5, 0($t0)
+LOOP: 	beq $t1, $t2, End
+	beqz $t1 IF
+	addi $a0, $a0, 4
+	sw $s0, 0($a0)
 	addi $t1, $t1, 1
 	j LOOP
+IF:	sw $s0, 0($a0)
+	addi $t1, $t1, 1
+	j LOOP
+End:	jr $ra
+
 
 DrawBranchTwo: 	
 	add $t1, $zero, $zero # Loop increment variable, i
