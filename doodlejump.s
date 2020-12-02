@@ -13,8 +13,8 @@
 	colortwo: .word 0x8AB8FF
 	colorthree: .word 0xD8FFEC
 	
-	platformone: .word 160
-	platformtwo: .word 1168
+	platformone: .word 688
+	platformtwo: .word 1952
 	platformthree: .word 3136
 	
 	doodler: .word 2752
@@ -23,72 +23,21 @@
 	lw $s0, colorone # $s0 stores the orange colour code
 	lw $s1, colortwo # $s1 stores the blue colour code
 	lw $s2, colorthree # $s2 stores the green colour code
-	add $s3, $zero, $zero
-	addi $s4, $zero, 1
-	addi $s5, $zero, 7
+	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
+	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
+	addi $s5, $zero, 11 #s5 stores the MAX number of times a doodler can move up or down
+
+start: # Renders the first frame
+	j DrawBG
 
 main: 	# Check for Keyboard Input
 	lw $t8, 0xffff0000
 	beq $t8, 1, KeyboardInput # Update location of doodler (And potentially platforms?)
-UpDown: beq $s3, $s5, CheckUpDown # Checks if s3, the total amount of upward/downward movements have hit 5
-	j CheckMove
-CheckMove: 
-	addi $t1, $zero, 0xFFFFFFFE # Stores 1 into t1 so that we can check equality
-	beq $s4, $t1, MoveDown # Checks if s4 is 0, which means it is currently in the  "movedown" phase
-	addi $t1, $zero, 1
-	beq $s4, $t1, MoveUp
+UpDown: beq $s3, $s5, SwitchUpDown # Checks if s3, the total amount of upward/downward movements have hit 7
+	j MoveDoodler
+	
 
-CheckUpDown: 
-	not $s4, $s4 # "Reverses" the bits in s4
-	add $s3, $zero, $zero # Resets the counter
-	j CheckMove
 	
-MoveUp:
-	lw $t1, doodler 
-	subiu $t2, $t1, 128
-	sw $t2, doodler
-	addi $s3, $s3, 1
-	j DrawBG
-MoveDown:
-	lw $t1, doodler
-	addiu $t2, $t1, 128
-	sw $t2, doodler
-	addi $s3, $s3, 1
-	j DrawBG
-	
-DrawBG:	add $a0, $t0, $zero # Store the display address into an argument function
-	addi $a1, $zero, 4092 # The max size 
-	jal DrawBackground
-	j DrawPF
-
-DrawPF:
-	lw $t1, platformone # Load the offset location of the branch into a register
-	add $a0, $t0, $t1 # Add the offset to the displayAddress, and store it as an argument
-	jal DrawPlatform # Draw the branch
-	lw $t1, platformtwo
-	add $a0, $t0, $t1
-	jal DrawPlatform
-	lw $t1, platformthree
-	add $a0, $t0, $t1
-	jal DrawPlatform
-	
-	j DrawDD
-
-DrawDD:
-	lw $t1, doodler 
-	add $a0, $t0, $t1
-	jal DrawDoodler
-	
-	j Continue
-
-Continue:
-	# Sleep
-	li $v0, 32
-	li $a0, 1000
-	syscall
-	
-	# Continue looping
-	j  main
 KeyboardInput: 
 	lw $t2, 0xffff0004 # Load the keyboard input ASCII code
 	beq $t2, 0x6A, MoveLeft # If the ASCII code corresponds to j
@@ -105,6 +54,88 @@ MoveRight:
 	addi $t2, $t1, 4 # Add 4 to move one pixel right
 	sw $t2, doodler
 	j UpDown
+
+SwitchUpDown: 
+	add $s4, $zero, $zero # "Reverses" the bits in s4
+	add $s3, $zero, $zero # Resets the counter
+MoveDoodler: 
+	addi $t1, $zero, 0 # Stores 0 into t1 so that we can check equality
+	beq $s4, $t1, MoveDown # Checks if s4 is 0, which means it is currently in the  "movedown" phase
+	addi $t1, $zero, 1
+	beq $s4, $t1, MoveUp
+MoveUp:
+	lw $t1, doodler 
+	subiu $t2, $t1, 128
+	sw $t2, doodler
+	addi $s3, $s3, 1
+	
+	add $a0, $t2, $zero
+	lw $a1, platformthree
+	jal Collision
+
+	lw $a1, platformtwo
+	jal Collision
+
+	lw $a1, platformone
+	jal Collision
+	
+	j DrawBG
+MoveDown:
+	lw $t1, doodler
+	addiu $t2, $t1, 128
+	sw $t2, doodler
+	
+	add $a0, $t2, $zero
+	lw $a1, platformthree
+	jal Collision
+	
+	lw $a1, platformtwo
+	jal Collision
+
+	lw $a1, platformone
+	jal Collision
+	
+	j DrawBG
+	
+
+Collision: # Function
+	subiu $t3, $a1, 392
+	subiu $t4, $a1, 364
+	blt $a0, $t3, FinishCollision
+	bgt $a0, $t4, FinishCollision
+HandleCollision:
+	add $s3, $zero, $zero
+	addi $s4, $zero, 1
+FinishCollision:
+	jr $ra
+	
+DrawBG:	add $a0, $t0, $zero # Store the display address into an argument function
+	addi $a1, $zero, 4092 # The max size 
+	jal DrawBackground
+DrawPF:
+	lw $t1, platformone # Load the offset location of the branch into a register
+	add $a0, $t0, $t1 # Add the offset to the displayAddress, and store it as an argument
+	jal DrawPlatform # Draw the branch
+	lw $t1, platformtwo
+	add $a0, $t0, $t1
+	jal DrawPlatform
+	lw $t1, platformthree
+	add $a0, $t0, $t1
+	jal DrawPlatform
+DrawDD:
+	lw $t1, doodler 
+	add $a0, $t0, $t1
+	jal DrawDoodler
+Continue:
+	# Sleep
+	li $v0, 32
+	li $a0, 1000
+	syscall
+	
+	# Continue looping
+	j  main
+
+# Functions
 	
 DrawBackground:
 	add $t1, $zero, $zero # Initialize increment variable i
