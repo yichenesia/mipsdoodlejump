@@ -25,12 +25,12 @@
 	lw $s2, colorthree # $s2 stores the green colour code
 	add $s3, $zero, $zero
 	addi $s4, $zero, 1
-	addi $s5, $zero, 5
+	addi $s5, $zero, 7
 
 main: 	# Check for Keyboard Input
 	lw $t8, 0xffff0000
 	beq $t8, 1, KeyboardInput # Update location of doodler (And potentially platforms?)
-	beq $s3, $s5, CheckUpDown # Checks if s3, the total amount of upward/downward movements have hit 5
+UpDown: beq $s3, $s5, CheckUpDown # Checks if s3, the total amount of upward/downward movements have hit 5
 	j CheckMove
 CheckMove: 
 	addi $t1, $zero, 0xFFFFFFFE # Stores 1 into t1 so that we can check equality
@@ -99,12 +99,12 @@ MoveLeft:
 	lw $t1, doodler # Load the initial location of the doodler
 	subiu $t2, $t1, 4 # Subtract 4 to move one pixel left
 	sw $t2, doodler
-	j DrawBG
+	j UpDown
 MoveRight:
 	lw $t1, doodler
 	addi $t2, $t1, 4 # Add 4 to move one pixel right
 	sw $t2, doodler
-	j DrawBG
+	j UpDown
 	
 DrawBackground:
 	add $t1, $zero, $zero # Initialize increment variable i
