@@ -14,7 +14,7 @@
 	colorthree: .word 0xD8FFEC
 	
 	platformone: .word 688
-	platformtwo: .word 1952
+	platformtwo: .word 2336
 	platformthree: .word 3136
 	
 	doodler: .word 2752
@@ -25,7 +25,7 @@
 	lw $s2, colorthree # $s2 stores the green colour code
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
-	addi $s5, $zero, 8 #s5 stores the MAX number of times a doodler can move up or down
+	addi $s5, $zero, 7 #s5 stores the MAX number of times a doodler can move up or down
 
 start: # Renders the first frame
 	j DrawBG
@@ -90,7 +90,7 @@ CheckCollision:
 
 Collision: # Function
 	subiu $t3, $a1, 392 # Left of the platform by 2 pixels
-	subiu $t4, $a1, 364 # immediate right of the platform
+	subiu $t4, $a1, 368 # immediate right of the platform
 	blt $a0, $t3, FinishCollision
 	bgt $a0, $t4, FinishCollision
 HandleCollision:
