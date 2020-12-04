@@ -20,14 +20,12 @@
 	doodler: .word 2752
 .text
 	lw $t0, displayAddress # $t0 stores the base address for display
-	lw $s0, colorone # $s0 stores the orange colour code
-	lw $s1, colortwo # $s1 stores the blue colour code
-	lw $s2, colorthree # $s2 stores the green colour code
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
 	addi $s5, $zero, 7 #s5 stores the MAX number of times a doodler can move up or down
 
-start: # Renders the first frame
+start: 	
+	# Renders the first frame
 	j DrawBG
 
 main: 	# Check for Keyboard Input
@@ -35,8 +33,6 @@ main: 	# Check for Keyboard Input
 	beq $t8, 1, KeyboardInput # Update location of doodler (And potentially platforms?)
 UpDown: beq $s3, $s5, SwitchUpDown # Checks if s3, the total amount of upward/downward movements have hit 7
 	j MoveDoodler
-	
-
 	
 KeyboardInput: 
 	lw $t2, 0xffff0004 # Load the keyboard input ASCII code
@@ -134,7 +130,8 @@ L1:	beq $t1, $a1, FinishBG
 	lw $t3, platformtwo
 	lw $t4, platformthree
 	
-	sw $s2, 0($a0) # Store color into memory at a0
+	lw $t5, colorthree # Load the color code
+	sw $t5, 0($a0) # Store color into memory at a0
 	addi $a0, $a0, 4 # Increment address by 4
 	addi $t1, $t1, 1 # Increment loop variable by 1
 	j L1
@@ -148,10 +145,14 @@ DrawPlatform:
 L2: 	beq $t1, $t2, FinishPlatform # If i == 5, exit the loop
 	beqz $t1 IF # If i == 0, do not increment by 4
 	addi $a0, $a0, 4 # Increment the "location pointer" by 4 to create another pixel
-	sw $s0, 0($a0) # Load it into memory
+	
+	lw $t3, colorone
+	
+	sw $t3, 0($a0) # Load it into memory
 	addi $t1, $t1, 1 # Increment i
 	j L2 # Continue looping
-IF:	sw $s0, 0($a0)
+IF:	lw $t3, colorone
+	sw $t3, 0($a0)
 	addi $t1, $t1, 1
 	j L2
 FinishPlatform:	
@@ -159,11 +160,12 @@ FinishPlatform:
 
 DrawDoodler: 
 	# Draws the doodler relative to the top LEFT corner of a box that is 3x3
-	sw $s1, 4($a0) 
-	sw $s1, 128($a0)
-	sw $s1, 136($a0)
-	sw $s1, 256($a0)
-	sw $s1, 264($a0)
+	lw $t1, colortwo
+	sw $t1, 4($a0) 
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	sw $t1, 256($a0)
+	sw $t1, 264($a0)
 	jr $ra
 	
 Exit:
