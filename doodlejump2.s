@@ -13,9 +13,9 @@
 	colortwo: .word 0x8AB8FF
 	colorthree: .word 0xD8FFEC
 	
-	platformone: .word 912 #688
-	platformtwo: .word 1920 #2336
-	platformthree: .word 2960 #3136
+	platformone: .space 4 #688
+	platformtwo: .space 4 #2336
+	platformthree: .space 4 #3136
 	
 	doodler: .word 2576
 .text
@@ -28,43 +28,6 @@ start:
 	# Renders the first frame
 	jal InitialPlatforms
 	j DrawBG
-
-InitialPlatforms:
-	li $v0, 42 # Random number generator
-	li $a0, 0
-	li $a1, 19
-	syscall
-	addi $t1, $zero, 4
-	mul $t2, $a0, $t1
-	addi $t2, $t2, 16
-	addi $t2, $t2, 2944
-	sw $t2, platformthree
-	
-	li $v0, 42
-	li $a0, 0
-	li $a1, 19
-	syscall
-	addi $t1, $zero, 4
-	mul $t2, $a0, $t1
-	addi $t2, $t2, 16
-	addi $t2, $t2, 1920
-	sw $t2, platformtwo
-	
-	li $v0, 42
-	li $a0, 0
-	li $a1, 19
-	syscall
-	addi $t1, $zero, 4
-	mul $t2, $a0, $t1
-	addi $t2, $t2, 16
-	addi $t2, $t2, 896
-	sw $t2, platformone
-	
-	lw $t1, platformthree
-	subi $t2, $t1, 384
-	sw $t2, doodler
-	
-	jr $ra
 
 main: 	# Check for Keyboard Input
 	lw $t8, 0xffff0000
@@ -160,7 +123,47 @@ Continue:
 	j  main
 
 # Functions
+
+InitialPlatforms:
+	li $v0, 42 # Random number generator
+	li $a0, 0 
+	li $a1, 19 # Max number 19 (4 * 19 = 76, the max amount we want)
+	syscall
 	
+	addi $t1, $zero, 4 # Store 4 into t1
+	mul $t2, $a0, $t1 # Multiply 4 to get the actual pixel offset
+	addi $t2, $t2, 16 # Add 16 to change it into the range we want
+	addi $t2, $t2, 2944 # Add 2944 - the Y value
+	sw $t2, platformthree # Store it into the platform memory
+	
+	li $v0, 42
+	li $a0, 0
+	li $a1, 19
+	syscall
+	
+	addi $t1, $zero, 4
+	mul $t2, $a0, $t1
+	addi $t2, $t2, 16
+	addi $t2, $t2, 1920
+	sw $t2, platformtwo
+	
+	li $v0, 42
+	li $a0, 0
+	li $a1, 19
+	syscall
+	
+	addi $t1, $zero, 4
+	mul $t2, $a0, $t1
+	addi $t2, $t2, 16
+	addi $t2, $t2, 896
+	sw $t2, platformone
+	
+	lw $t1, platformthree
+	subi $t2, $t1, 384
+	sw $t2, doodler
+	
+	jr $ra
+
 DrawBackground:
 	add $t1, $zero, $zero # Initialize increment variable i
 L1:	beq $t1, $a1, FinishBG
