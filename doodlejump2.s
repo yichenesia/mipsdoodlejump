@@ -84,7 +84,7 @@ CheckCollision:
 	lw $t1, p3x # Get x value
 	lw $t2, p3y # Get y value
 	
-	add $a1, $t1, $t2
+	add $a1, $t1, $t2 # Store the absolute value of platform into a1
 	jal Collision
 	
 	lw $t1 p2x
@@ -106,7 +106,9 @@ CheckCollision:
 Collision: # Function
 	subiu $t3, $a1, 392 # Left of the platform by 2 pixels
 	subiu $t4, $a1, 368 # immediate right of the platform
+	addi $t5, $zero, 4092
 	
+	bgt $a0, $t5, Exit # Falls outside of box
 	blt $a0, $t3, FinishCollision
 	bgt $a0, $t4, FinishCollision
 HandleCollision:
@@ -168,7 +170,7 @@ InitialPlatforms:
 	addi $t2, $t2, 16 # Add 16 to change it into the range we want
 	# t2 now has our x-offset
 	
-	sw $t2, p3x
+	sw $t2, p3x # Store x-offset into memory
 	
 	addi $t2, $zero, 2944 # Add 2944 
 	sw $t2, p3y # Store it into the platform y offset memory
@@ -201,6 +203,7 @@ InitialPlatforms:
 	addi $t2, $zero, 896
 	sw $t2, p1y
 	
+	# Doodler portion
 	lw $t1, p3x
 	lw $t2, p3y
 	
@@ -214,16 +217,12 @@ InitialPlatforms:
 DrawBackground:
 	add $t1, $zero, $zero # Initialize increment variable i
 L1:	beq $t1, $a1, FinishBG
-	#lw $t2, platformone
-	#lw $t3, platformtwo
-	#lw $t4, platformthree
 	
 	lw $t5, colorthree # Load the color code
 	sw $t5, 0($a0) # Store color into memory at a0
 	addi $a0, $a0, 4 # Increment address by 4
 	addi $t1, $t1, 1 # Increment loop variable by 1
 	j L1
-
 FinishBG:	
 	jr $ra
 
