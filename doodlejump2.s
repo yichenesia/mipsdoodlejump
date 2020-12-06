@@ -80,6 +80,7 @@ MoveDown:
 CheckCollision:
 	lw $t1, doodlerx
 	add $a0, $t2, $t1 # Store doodler absolute value
+	
 	lw $t1, p3x # Get x value
 	lw $t2, p3y # Get y value
 	
@@ -88,14 +89,14 @@ CheckCollision:
 	
 	lw $t1 p2x
 	lw $t2, p2y
-	add $t2, $t2, $t1
-	add $a1, $zero, $t2
+	
+	add $a1, $t1, $t2
 	jal Collision
 
 	lw $t1, p1x
 	lw $t2, p1y
-	add $t2, $t2, $t1
-	add $a1, $zero, $t1
+	
+	add $a1, $t1, $t2
 	
 	jal Collision
 	
