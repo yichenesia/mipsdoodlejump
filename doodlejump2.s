@@ -219,7 +219,7 @@ Collision: # Function
 	subiu $t4, $a1, 364 # immediate right of the platform
 	addi $t5, $zero, 4092
 	
-	bgt $a0, $t5, Exit # Falls outside of box
+	bgt $a0, $t5, GameOver # Falls outside of box
 	blt $a0, $t3, FinishCollision
 	bgt $a0, $t4, FinishCollision
 HandleCollision:
@@ -267,6 +267,40 @@ Continue:
 	
 	# Continue looping
 	j  main
+
+
+GameOver:
+	# Wait for 
+	add $t1, $zero, $zero # Initialize increment variable i
+	addi $t2, $zero, 4092
+	add $t3, $t0, $zero
+	
+LOOPGO:	beq $t1, $t2, FinishGO
+	
+	lw $t5, black # Load the color code
+	sw $t5, 0($t3) # Store color into memory at a0
+	addi $t3, $t3, 4 # Increment address by 4
+	addi $t1, $t1, 1 # Increment loop variable by 1
+	j LOOPGO
+FinishGO:	
+	lw $t8, 0xffff0000
+	beq $t8, 1, EndGame
+	j FinishGO
+RestartGame:
+	lw $t0, displayAddress # $t0 stores the base address for display
+	
+	add $s0, $zero, $zero # 0 means no shift, 1 means shifting is active 
+	addi $s1, $zero, 3 # Lowest platform
+	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
+	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
+	addi $s5, $zero, 12 #s5 stores the MAX number of times a doodler can move up or down
+	
+	j start
+EndGame:
+	lw $t1, 0xffff0004
+	beq $t1, 0x72, RestartGame
+	
+	j Exit
 
 # Functions
 
