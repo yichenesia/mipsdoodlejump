@@ -13,6 +13,7 @@
 	blue: .word 0x8AB8FF
 	mint: .word 0xD8FFEC
 	black: .word 0x000000
+	red: .word 0xFF0000
 	
 	p1x: .space 4 #688
 	p1y: .space 4 
@@ -282,7 +283,17 @@ LOOPGO:	beq $t1, $t2, FinishGO
 	addi $t3, $t3, 4 # Increment address by 4
 	addi $t1, $t1, 1 # Increment loop variable by 1
 	j LOOPGO
-FinishGO:	
+FinishGO:
+	addi $a0, $t0, 24
+	jal DrawG
+	jal DrawA
+	jal DrawM
+	jal DrawE
+	jal DrawO
+	jal DrawV
+	jal DrawE2
+	jal DrawR
+	
 	lw $t8, 0xffff0000
 	beq $t8, 1, EndGame
 	j FinishGO
@@ -400,7 +411,146 @@ DrawDoodler:
 	sw $t1, 256($a0)
 	sw $t1, 264($a0)
 	jr $ra
+
+DrawG:
+	lw $t1, red
+	sw $t1, 388($a0) # a0 will contain the value in $t0
+	sw $t1, 392($a0)
+	sw $t1, 396($a0)
+	sw $t1, 512($a0)
+	sw $t1, 640($a0)
+	sw $t1, 648($a0)
+	sw $t1, 652($a0)
+	sw $t1, 768($a0)
+	sw $t1, 780($a0)
+	sw $t1, 900($a0)
+	sw $t1, 904($a0)
+	sw $t1, 908($a0)
 	
+	jr $ra
+
+DrawA:
+	lw $t1, red
+	sw $t1, 408($a0)
+	sw $t1, 532($a0)
+	sw $t1, 540($a0)
+	sw $t1, 660($a0)
+	sw $t1, 664($a0)
+	sw $t1, 668($a0)
+	sw $t1, 788($a0)
+	sw $t1, 796($a0)
+	sw $t1, 916($a0)
+	sw $t1, 924($a0)
+	
+	jr $ra
+	
+DrawM:
+	lw $t1, red
+	sw $t1, 420($a0)
+	sw $t1, 548($a0)
+	sw $t1, 676($a0)
+	sw $t1, 804($a0)
+	sw $t1, 932($a0)
+	
+	sw $t1, 552($a0)
+	sw $t1, 560($a0)
+	sw $t1, 684($a0)
+	
+	sw $t1, 436($a0)
+	sw $t1, 564($a0)
+	sw $t1, 692($a0)
+	sw $t1, 820($a0)
+	sw $t1, 948($a0)
+	
+	jr $ra
+
+DrawE:
+	lw $t1, red
+	sw $t1, 444($a0)
+	sw $t1, 448($a0)
+	sw $t1, 452($a0)
+	sw $t1, 572($a0)
+	sw $t1, 700($a0)
+	sw $t1, 704($a0)
+	sw $t1, 708($a0)
+	sw $t1, 828($a0)
+	sw $t1, 956($a0)
+	sw $t1, 960($a0)
+	sw $t1, 964($a0)
+	jr $ra
+
+DrawO:
+	addi $a0, $a0, 768
+	
+	lw $t1, red
+	sw $t1, 388($a0) # a0 will contain the value in $t0
+	sw $t1, 392($a0)
+	sw $t1, 396($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 640($a0)
+	sw $t1, 768($a0)
+	
+	sw $t1, 528($a0)
+	sw $t1, 656($a0)
+	sw $t1, 784($a0)
+	
+	sw $t1, 900($a0)
+	sw $t1, 904($a0)
+	sw $t1, 908($a0)
+	
+	jr $ra
+
+
+DrawV:
+	lw $t1, red
+	
+	sw $t1, 408($a0)
+	sw $t1, 536($a0)
+	sw $t1, 664($a0)
+	sw $t1, 792($a0)
+	
+	sw $t1, 924($a0)
+	
+	sw $t1, 416($a0)
+	sw $t1, 544($a0)
+	sw $t1, 672($a0)
+	sw $t1, 800($a0)
+	
+	jr $ra
+
+DrawE2:
+	lw $t1, red
+	
+	sw $t1, 424($a0)
+	sw $t1, 428($a0)
+	sw $t1, 432($a0)
+	
+	sw $t1, 552($a0)
+	sw $t1, 680($a0)
+	sw $t1, 684($a0)
+	sw $t1, 688($a0)
+	sw $t1, 808($a0)
+	sw $t1, 936($a0)
+	sw $t1, 940($a0)
+	sw $t1, 944($a0)
+	
+	jr $ra
+
+DrawR:
+	lw $t1, red
+	
+	sw $t1, 444($a0)
+	sw $t1, 568($a0)
+	sw $t1, 576($a0)
+	sw $t1, 696($a0)
+	sw $t1, 700($a0)
+	sw $t1, 824($a0)
+	sw $t1, 832($a0)
+	sw $t1, 952($a0)
+	sw $t1, 964($a0)
+	
+	jr $ra
 Exit:
 	li $v0, 10 # terminate the program gracefully
 	syscall
