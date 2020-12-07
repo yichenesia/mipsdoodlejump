@@ -47,8 +47,7 @@ KeyboardInput:
 	lw $t2, 0xffff0004 # Load the keyboard input ASCII code
 	beq $t2, 0x6A, MoveLeft # If the ASCII code corresponds to j
 	beq $t2, 0x6B, MoveRight # If the ASCII Code corresponds to k
-	bne $t2, 0x6A, Exit # Exit game when j or k is not pressed
-	bne $t2, 0x6B, Exit
+	j UpDown
 MoveLeft:
 	lw $t1, doodlerx # Load the initial x location of the doodler
 	
