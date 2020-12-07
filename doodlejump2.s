@@ -24,10 +24,13 @@
 	doodlery: .space 4
 .text
 	lw $t0, displayAddress # $t0 stores the base address for display
+	
+	add $s0, $zero, $zero # 0 means no shift, 1 means shifting is active 
+	addi $s1, $zero, 3 # Lowest platform
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
-	addi $s5, $zero, 9 #s5 stores the MAX number of times a doodler can move up or down
-
+	addi $s5, $zero, 12 #s5 stores the MAX number of times a doodler can move up or down
+	
 start: 	
 	# Renders the first frame
 	jal InitialPlatforms
@@ -100,12 +103,120 @@ CheckCollision:
 	
 	jal Collision
 	
-	j DrawBG
+	jal ShiftPFDown
 	
+	# TODO: JUMP TO FUNCTION TO START "SHIFTING" DOWN PLATFORM
+	addi $t1, $zero, 384
+	lw $t2, doodlery
+	blt $t2, $t1, ShiftDown
+	
+	j DrawBG
+
+ShiftPFDown:
+	beq $s0, $zero, FinishShifting # If s0, the tracker, is 0, stop shifting
+	
+	addi $t1, $zero, 384 # Keep doodler at a constant Y value while the screen shifts
+	sw $t1, doodlery
+	
+	lw $t1, p1y # Increase the y value of platform 1
+	addi $t1, $t1, 128
+	sw $t1, p1y
+	
+	lw $t1, p2y # Increase the y value of platform 2
+	addi $t1, $t1, 128
+	sw $t1, p2y
+	
+	lw $t1, p3y # Increase the y value of platform 3
+	addi $t1, $t1, 128
+	sw $t1, p3y
+	
+	addi $t2, $zero, 3968 # Max y value
+	beq $t1, $t2, CancelShift # Cancel if platform 3 is at the bottom
+	lw $t1, p2y
+	beq $t1, $t2, CancelShift # Cancel if platform 3 is at the bottom
+	lw $t1, p1y
+	beq $t1, $t2, CancelShift # Cancel if platform 3 is at the bottom
+	
+	j FinishShifting
+CancelShift:
+	add $s0, $zero, $zero # Set s0 to 0 to disable shifting down
+FinishShifting:
+	jr $ra
+
+
+ShiftDown: 
+	addi $s0, $zero, 1 # Activate "shift-down" procedure
+	
+	addi $t1, $zero, 256
+	lw $t1, doodlery
+
+	addi $t1, $zero, 3
+	beq $t1, $s1, P3REGEN
+	addi $t1, $zero, 2
+	beq $t1, $s1, P2REGEN
+	addi $t1, $zero, 1
+	beq $t1, $s1, P1REGEN
+P3REGEN:
+	li $v0, 42 # Random number generator
+	li $a0, 0 
+	li $a1, 19 # Max number 19 (4 * 19 = 76, the max amount we want)
+	syscall
+	
+	addi $t1, $zero, 4 # Store 4 into t1
+	mul $t2, $a0, $t1 # Multiply 4 to get the actual pixel offset
+	addi $t2, $t2, 16 # Add 16 to change it into the range we want
+	# t2 now has our x-offset
+	
+	sw $t2, p3x # Store x-offset into memory
+	
+	add $t2, $zero, $zero # Initial location of platform
+	sw $t2, p3y # Store it into the platform y offset memory
+	
+	addi $s1, $zero, 2
+	
+	j FinishGen
+P2REGEN:
+	li $v0, 42 # Random number generator
+	li $a0, 0 
+	li $a1, 19 # Max number 19 (4 * 19 = 76, the max amount we want)
+	syscall
+	
+	addi $t1, $zero, 4 # Store 4 into t1
+	mul $t2, $a0, $t1 # Multiply 4 to get the actual pixel offset
+	addi $t2, $t2, 16 # Add 16 to change it into the range we want
+	# t2 now has our x-offset
+	
+	sw $t2, p2x # Store x-offset into memory
+	
+	add $t2, $zero, $zero # Initial location of platform
+	sw $t2, p2y # Store it into the platform y offset memory
+	
+	addi $s1, $zero, 1
+	
+	j FinishGen
+P1REGEN:
+	li $v0, 42 # Random number generator
+	li $a0, 0 
+	li $a1, 19 # Max number 19 (4 * 19 = 76, the max amount we want)
+	syscall
+	
+	addi $t1, $zero, 4 # Store 4 into t1
+	mul $t2, $a0, $t1 # Multiply 4 to get the actual pixel offset
+	addi $t2, $t2, 16 # Add 16 to change it into the range we want
+	# t2 now has our x-offset
+	
+	sw $t2, p1x # Store x-offset into memory
+	
+	add $t2, $zero, $zero # Initial location of platform
+	sw $t2, p1y # Store it into the platform y offset memory
+	
+	addi $s1, $zero, 3
+FinishGen: 
+	j DrawBG
 
 Collision: # Function
 	subiu $t3, $a1, 392 # Left of the platform by 2 pixels
-	subiu $t4, $a1, 368 # immediate right of the platform
+	subiu $t4, $a1, 364 # immediate right of the platform
 	addi $t5, $zero, 4092
 	
 	bgt $a0, $t5, Exit # Falls outside of box
@@ -172,7 +283,7 @@ InitialPlatforms:
 	
 	sw $t2, p3x # Store x-offset into memory
 	
-	addi $t2, $zero, 2944 # Add 2944 
+	addi $t2, $zero, 3968 # Add 2944 
 	sw $t2, p3y # Store it into the platform y offset memory
 	
 	li $v0, 42
@@ -183,11 +294,12 @@ InitialPlatforms:
 	addi $t1, $zero, 4
 	mul $t2, $a0, $t1
 	addi $t2, $t2, 16
+	# t2 now has our x-offset
 	
-	sw $t2, p2x
+	sw $t2, p2x # Store into memory
 
-	addi $t2, $zero, 1920
-	sw $t2, p2y
+	addi $t2, $zero, 2560
+	sw $t2, p2y # Store y value into memory
 	
 	li $v0, 42
 	li $a0, 0
@@ -196,11 +308,11 @@ InitialPlatforms:
 	
 	addi $t1, $zero, 4
 	mul $t2, $a0, $t1
-	addi $t2, $t2, 16
-	
+	addi $t2, $t2, 16 
+	# t2 now has our x-offset
 	sw $t2, p1x
 	
-	addi $t2, $zero, 896
+	addi $t2, $zero, 1152
 	sw $t2, p1y
 	
 	# Doodler portion
@@ -228,7 +340,7 @@ FinishBG:
 
 DrawPlatform: 	
 	add $t1, $zero, $zero # Loop increment variable, i
-      	addi $t2, $zero, 5 # Length of a platform
+      	addi $t2, $zero, 6 # Length of a platform
 L2: 	beq $t1, $t2, FinishPlatform # If i == 5, exit the loop
 	beqz $t1 IF # If i == 0, do not increment by 4
 	addi $a0, $a0, 4 # Increment the "location pointer" by 4 to create another pixel
