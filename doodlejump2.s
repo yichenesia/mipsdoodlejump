@@ -9,9 +9,10 @@
 #
 .data
 	displayAddress: .word 0x10008000
-	colorone: .word 0xFFCA8A
-	colortwo: .word 0x8AB8FF
-	colorthree: .word 0xD8FFEC
+	orange: .word 0xFFCA8A
+	blue: .word 0x8AB8FF
+	mint: .word 0xD8FFEC
+	black: .word 0x000000
 	
 	p1x: .space 4 #688
 	p1y: .space 4 
@@ -330,7 +331,7 @@ DrawBackground:
 	add $t1, $zero, $zero # Initialize increment variable i
 L1:	beq $t1, $a1, FinishBG
 	
-	lw $t5, colorthree # Load the color code
+	lw $t5, mint # Load the color code
 	sw $t5, 0($a0) # Store color into memory at a0
 	addi $a0, $a0, 4 # Increment address by 4
 	addi $t1, $t1, 1 # Increment loop variable by 1
@@ -345,12 +346,12 @@ L2: 	beq $t1, $t2, FinishPlatform # If i == 5, exit the loop
 	beqz $t1 IF # If i == 0, do not increment by 4
 	addi $a0, $a0, 4 # Increment the "location pointer" by 4 to create another pixel
 	
-	lw $t3, colorone
+	lw $t3, orange
 	
 	sw $t3, 0($a0) # Load it into memory
 	addi $t1, $t1, 1 # Increment i
 	j L2 # Continue looping
-IF:	lw $t3, colorone
+IF:	lw $t3, orange
 	sw $t3, 0($a0)
 	addi $t1, $t1, 1
 	j L2
@@ -359,7 +360,7 @@ FinishPlatform:
 
 DrawDoodler: 
 	# Draws the doodler relative to the top LEFT corner of a box that is 3x3
-	lw $t1, colortwo
+	lw $t1, blue
 	sw $t1, 4($a0) 
 	sw $t1, 128($a0)
 	sw $t1, 136($a0)
