@@ -31,7 +31,7 @@
 	addi $s1, $zero, 3 # Lowest platform
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
-	addi $s5, $zero, 12 #s5 stores the MAX number of times a doodler can move up or down
+	
 	
 start: 	
 	# Renders the first frame
@@ -41,7 +41,9 @@ start:
 main: 	# Check for Keyboard Input
 	lw $t8, 0xffff0000
 	beq $t8, 1, KeyboardInput # Update location of doodler (And potentially platforms?)
-UpDown: beq $s3, $s5, SwitchUpDown # Checks if s3, the total amount of upward/downward movements have hit 7
+	
+UpDown: addi $t1, $zero, 12
+	beq $s3, $t1, SwitchUpDown # Checks if s3, the total amount of upward/downward movements have hit 7
 	j MoveDoodler
 	
 KeyboardInput: 
@@ -232,6 +234,12 @@ FinishCollision:
 DrawBG:	add $a0, $t0, $zero # Store starting display address
 	addi $a1, $zero, 4092 # The max size 
 	jal DrawBackground
+	
+	addi $a0, $t0, 132
+	jal Draw9
+	addi $a0, $t0, 148
+	jal Draw9
+	
 DrawPF:
 	lw $t1, p1x # Load the x offset location of the branch into a register
 	lw $t2, p1y
@@ -304,7 +312,6 @@ RestartGame:
 	addi $s1, $zero, 3 # Lowest platform
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
-	addi $s5, $zero, 12 #s5 stores the MAX number of times a doodler can move up or down
 	
 	j start
 EndGame:
@@ -411,6 +418,8 @@ DrawDoodler:
 	sw $t1, 256($a0)
 	sw $t1, 264($a0)
 	jr $ra
+
+# Letters
 
 DrawG:
 	lw $t1, red
@@ -551,6 +560,186 @@ DrawR:
 	sw $t1, 964($a0)
 	
 	jr $ra
+	
+# Numbers
+
+Draw0:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	sw $t1, 256($a0)
+	sw $t1, 264($a0)
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw1:
+	lw $t1, black
+	
+	sw $t1, 4($a0)
+	sw $t1, 132($a0)
+	sw $t1, 260($a0)
+	sw $t1, 388($a0)
+	sw $t1, 516($a0)
+	
+	jr $ra
+Draw2:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	sw $t1, 136($a0)
+	sw $t1, 264($a0)
+	sw $t1, 260($a0)
+	sw $t1, 256($a0)
+
+	sw $t1, 384($a0)
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw3:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	
+	sw $t1, 136($a0)
+	
+	sw $t1, 264($a0)
+	sw $t1, 260($a0)
+	sw $t1, 256($a0)
+	
+	sw $t1, 392($a0)
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw4:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 128($a0)
+	sw $t1, 256($a0)
+	
+	sw $t1, 260($a0)
+	
+	sw $t1, 8($a0)
+	sw $t1, 136($a0)
+	sw $t1, 264($a0)
+	sw $t1, 392($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw5:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	
+	sw $t1, 128($a0)
+	
+	sw $t1, 264($a0)
+	sw $t1, 260($a0)
+	sw $t1, 256($a0)
+
+	sw $t1, 392($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw6:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	
+	sw $t1, 128($a0)
+	
+	sw $t1, 264($a0)
+	sw $t1, 260($a0)
+	sw $t1, 256($a0)
+
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw7:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	
+	sw $t1, 8($a0)
+	sw $t1, 136($a0)
+	sw $t1, 264($a0)
+	sw $t1, 392($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw8:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 260($a0)
+	sw $t1, 264($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+Draw9:
+	lw $t1, black
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	
+	sw $t1, 264($a0)
+	sw $t1, 260($a0)
+	sw $t1, 256($a0)
+
+	sw $t1, 392($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+
 Exit:
 	li $v0, 10 # terminate the program gracefully
 	syscall
