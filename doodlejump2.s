@@ -9,9 +9,9 @@
 #
 .data
 	displayAddress: .word 0x10008000
-	orange: .word 0xFFCA8A
-	blue: .word 0x8AB8FF
-	mint: .word 0xD8FFEC
+	orange: .word 0x8c5426
+	pink: .word 0xffc4d8
+	azure: .word 0x5cc0ff
 	black: .word 0x000000
 	red: .word 0xFF0000
 	
@@ -29,6 +29,7 @@
 	
 	add $s0, $zero, $zero # 0 means no shift, 1 means shifting is active 
 	addi $s1, $zero, 3 # Lowest platform
+	add $s2, $zero, $zero # Score counter, min 0, max 99
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
 	
@@ -217,29 +218,105 @@ P1REGEN:
 FinishGen: 
 	j DrawBG
 
-Collision: # Function
-	subiu $t3, $a1, 392 # Left of the platform by 2 pixels
-	subiu $t4, $a1, 364 # immediate right of the platform
-	addi $t5, $zero, 4092
-	
-	bgt $a0, $t5, GameOver # Falls outside of box
-	blt $a0, $t3, FinishCollision
-	bgt $a0, $t4, FinishCollision
-HandleCollision:
-	add $s3, $zero, $zero # Set the counter of how many pixels the doodler has travelled to 0
-	addi $s4, $zero, 1 # Set the direction to up
-FinishCollision:
-	jr $ra
+
 	
 DrawBG:	add $a0, $t0, $zero # Store starting display address
 	addi $a1, $zero, 4092 # The max size 
 	jal DrawBackground
 	
-	addi $a0, $t0, 132
-	jal Draw9
-	addi $a0, $t0, 148
+	blt $s2, 10, DrawSingleDigit
+	bge $s2, 99, DrawMaxScore
+	bge $s2, 10, DrawDoubleDigit
+DrawMaxScore:
+	addi $a0, $t0, 132 # tens place
 	jal Draw9
 	
+	addi $a0, $t0, 148 # ones place
+	jal Draw9
+	
+	j DrawPF
+DrawSingleDigit:
+	addi $a0, $t0, 132 # tens place
+	jal Draw0
+	
+	addi $a0, $t0, 148 # ones place
+	add $t1, $s2, $zero
+	j DetermineDigit
+	
+DrawDoubleDigit:
+	addi $t2, $zero, 10
+	div $s2, $t2
+	
+	mflo $t1
+
+	addi $a0, $t0, 132 # tens place
+	addi $t2, $zero, 1
+	j DetermineDigit
+OnesDigit: 
+	addi $t2, $zero, 10
+	div $s2, $t2
+	mfhi $t1
+	
+	addi $a0, $t0, 148 # ones place
+	addi $t2, $zero, 0
+	j DetermineDigit
+	
+DetermineDigit:
+	beq $t1, 0, IF0
+	beq $t1, 1, IF1
+	beq $t1, 2, IF2
+	beq $t1, 3, IF3
+	beq $t1, 4, IF4
+	beq $t1, 5, IF5
+	beq $t1, 6, IF6
+	beq $t1, 7, IF7
+	beq $t1, 8, IF8
+	beq $t1, 9, IF9
+IF0: 
+	jal Draw0
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF1:
+	jal Draw1
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF2: 
+	jal Draw2
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF3:
+	jal Draw3
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF4: 
+	jal Draw4
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF5:
+	jal Draw5
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF6: 
+	jal Draw6
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF7:
+	jal Draw7
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF8: 
+	jal Draw8
+	beq $t2, 1, FinishTens
+	j FinishDigit
+IF9:
+	jal Draw9
+	beq $t2, 1, FinishTens
+	j FinishDigit
+FinishTens:
+	j OnesDigit
+FinishDigit:
+	j DrawPF	
+
 DrawPF:
 	lw $t1, p1x # Load the x offset location of the branch into a register
 	lw $t2, p1y
@@ -277,7 +354,6 @@ Continue:
 	# Continue looping
 	j  main
 
-
 GameOver:
 	# Wait for 
 	add $t1, $zero, $zero # Initialize increment variable i
@@ -306,12 +382,16 @@ FinishGO:
 	beq $t8, 1, EndGame
 	j FinishGO
 RestartGame:
+	# Resets everything before restarting the game
+	
 	lw $t0, displayAddress # $t0 stores the base address for display
 	
 	add $s0, $zero, $zero # 0 means no shift, 1 means shifting is active 
 	addi $s1, $zero, 3 # Lowest platform
+	add $s2, $zero, $zero # Score counter, min 0, max 99
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
+	
 	
 	j start
 EndGame:
@@ -321,6 +401,22 @@ EndGame:
 	j Exit
 
 # Functions
+
+Collision: # Function
+	subiu $t3, $a1, 392 # Left of the platform by 2 pixels
+	subiu $t4, $a1, 364 # immediate right of the platform
+	addi $t5, $zero, 4092
+	
+	bgt $a0, $t5, GameOver # Falls outside of box
+	blt $a0, $t3, FinishCollision
+	bgt $a0, $t4, FinishCollision
+HandleCollision:
+	add $s3, $zero, $zero # Set the counter of how many pixels the doodler has travelled to 0
+	addi $s4, $zero, 1 # Set the direction to up
+	addi $s2, $s2, 1 # Add 1 to score
+FinishCollision:
+	jr $ra
+
 
 InitialPlatforms:
 	li $v0, 42 # Random number generator
@@ -382,7 +478,7 @@ DrawBackground:
 	add $t1, $zero, $zero # Initialize increment variable i
 L1:	beq $t1, $a1, FinishBG
 	
-	lw $t5, mint # Load the color code
+	lw $t5, azure # Load the color code
 	sw $t5, 0($a0) # Store color into memory at a0
 	addi $a0, $a0, 4 # Increment address by 4
 	addi $t1, $t1, 1 # Increment loop variable by 1
@@ -411,7 +507,7 @@ FinishPlatform:
 
 DrawDoodler: 
 	# Draws the doodler relative to the top LEFT corner of a box that is 3x3
-	lw $t1, blue
+	lw $t1, pink
 	sw $t1, 4($a0) 
 	sw $t1, 128($a0)
 	sw $t1, 136($a0)
