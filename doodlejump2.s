@@ -652,7 +652,7 @@ FinishPlatform:
 DrawDoodler: 
 	# Draws the doodler relative to the top LEFT corner of a box that is 3x3
 	lw $t1, pink
-	lw $t2, black
+	lw $t2, red
 	lw $t3, sun
 	
 	
