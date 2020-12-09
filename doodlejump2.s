@@ -10,10 +10,16 @@
 .data
 	displayAddress: .word 0x10008000
 	orange: .word 0x8c5426
-	pink: .word 0xffc4d8
-	azure: .word 0x5cc0ff
+	pink: .word 0xF87DFF
+	magenta: .word 0xEB67C6
+	azure: .word 0x538AFF
+	lightazure: .word 0x77A2FF
+	lightblue: .word 0xA2BFFF
 	black: .word 0x000000
 	red: .word 0xFF0000
+	white: .word 0xFFFFFF
+	bird: .word 0xF1DFC8
+	sun: .word 0xFFE330
 	
 	p1x: .space 4 #688
 	p1y: .space 4 
@@ -24,6 +30,8 @@
 
 	doodlerx: .space 4
 	doodlery: .space 4
+	
+	name: .space 4
 .text
 	lw $t0, displayAddress # $t0 stores the base address for display
 	
@@ -35,9 +43,35 @@
 	
 	
 start: 	
-	# Renders the first frame
+	# Renders the first frames
+	add $a0, $t0, 276
+	jal DrawStartScreen
+Await: 	lw $t8, 0xffff0000
+	beq $t8, 1, CheckStart #If it detects keyboard input, changes to start
+	j Await
+CheckStart:
+	lw $t2, 0xffff0004
+	beq $t2, 0x73, PrepareGame # If 's', start the game
+	beq $t2, 0x6E, EnterName # If 'n', go to input name
+	j CheckStart
+EnterName:
+	lw $t8, 0xffff0000
+	beq $t8, 1, CheckName
+	j EnterName
+CheckName:
+	lw $t2, 0xffff0004
+	sw $t2, name
+	
+	addi $a0, $t0, 1716
+	
+	jal DrawNameLetter
+
+	j CheckStart
+PrepareGame:
 	jal InitialPlatforms
 	j DrawBG
+
+
 
 main: 	# Check for Keyboard Input
 	lw $t8, 0xffff0000
@@ -110,16 +144,16 @@ CheckCollision:
 	jal ShiftPFDown
 	
 	# TODO: JUMP TO FUNCTION TO START "SHIFTING" DOWN PLATFORM
-	addi $t1, $zero, 384
+	addi $t1, $zero, 640
 	lw $t2, doodlery
-	blt $t2, $t1, ShiftDown
+	blt $t2, $t1, ShiftDown # Anything less than 640 in terms of y value will cause shift-downs
 	
 	j DrawBG
 
 ShiftPFDown:
 	beq $s0, $zero, FinishShifting # If s0, the tracker, is 0, stop shifting
 	
-	addi $t1, $zero, 384 # Keep doodler at a constant Y value while the screen shifts
+	addi $t1, $zero, 640 # Keep doodler at a constant Y value while the screen shifts
 	sw $t1, doodlery
 	
 	lw $t1, p1y # Increase the y value of platform 1
@@ -151,7 +185,7 @@ FinishShifting:
 ShiftDown: 
 	addi $s0, $zero, 1 # Activate "shift-down" procedure
 	
-	addi $t1, $zero, 256
+#	addi $t1, $zero, 256
 	lw $t1, doodlery
 
 	addi $t1, $zero, 3
@@ -218,8 +252,6 @@ P1REGEN:
 FinishGen: 
 	j DrawBG
 
-
-	
 DrawBG:	add $a0, $t0, $zero # Store starting display address
 	addi $a1, $zero, 4092 # The max size 
 	jal DrawBackground
@@ -234,7 +266,7 @@ DrawMaxScore:
 	addi $a0, $t0, 148 # ones place
 	jal Draw9
 	
-	j DrawPF
+	j DrawBGItem
 DrawSingleDigit:
 	addi $a0, $t0, 132 # tens place
 	jal Draw0
@@ -315,8 +347,20 @@ IF9:
 FinishTens:
 	j OnesDigit
 FinishDigit:
-	j DrawPF	
+	j DrawBGItem	
 
+DrawBGItem:
+	add $a0, $t0, $zero
+	jal DrawCloud
+	
+	addi $a0, $t0, 1664
+	jal DrawCloud
+	
+	addi $a0, $t0, 2084
+	jal DrawBird
+	
+	addi $a0, $t0, 168
+	jal DrawSun
 DrawPF:
 	lw $t1, p1x # Load the x offset location of the branch into a register
 	lw $t2, p1y
@@ -403,8 +447,8 @@ EndGame:
 # Functions
 
 Collision: # Function
-	subiu $t3, $a1, 392 # Left of the platform by 2 pixels
-	subiu $t4, $a1, 364 # immediate right of the platform
+	subiu $t3, $a1, 648 # Left of the platform by 2 pixels
+	subiu $t4, $a1, 620 # immediate right of the platform
 	addi $t5, $zero, 4092
 	
 	bgt $a0, $t5, GameOver # Falls outside of box
@@ -469,20 +513,33 @@ InitialPlatforms:
 	
 	sw $t1, doodlerx
 	
-	subi $t2, $t2, 384
+	subi $t2, $t2, 640
 	sw $t2, doodlery
 	
 	jr $ra
 
 DrawBackground:
 	add $t1, $zero, $zero # Initialize increment variable i
-L1:	beq $t1, $a1, FinishBG
-	
 	lw $t5, azure # Load the color code
+L1:	beq $t1, 384, BGL2
+	
 	sw $t5, 0($a0) # Store color into memory at a0
 	addi $a0, $a0, 4 # Increment address by 4
 	addi $t1, $t1, 1 # Increment loop variable by 1
 	j L1
+BGL2:	beq $t1, 768, BGL3
+	lw $t5, lightazure # Load the color code
+	sw $t5, 0($a0) # Store color into memory at a0
+	addi $a0, $a0, 4 # Increment address by 4
+	addi $t1, $t1, 1 # Increment loop variable by 1
+	j BGL2
+BGL3:
+	beq $t1, 1024, FinishBG
+	lw $t5, lightblue # Load the color code
+	sw $t5, 0($a0) # Store color into memory at a0
+	addi $a0, $a0, 4 # Increment address by 4
+	addi $t1, $t1, 1 # Increment loop variable by 1
+	j BGL3
 FinishBG:	
 	jr $ra
 
@@ -508,13 +565,114 @@ FinishPlatform:
 DrawDoodler: 
 	# Draws the doodler relative to the top LEFT corner of a box that is 3x3
 	lw $t1, pink
+	lw $t2, red
+	lw $t3, sun
+	
+	
+	sw $t2, 0($a0) #Head row 1
 	sw $t1, 4($a0) 
-	sw $t1, 128($a0)
-	sw $t1, 136($a0)
-	sw $t1, 256($a0)
-	sw $t1, 264($a0)
+	sw $t2, 8($a0) 
+	
+	lw $t2, magenta
+	sw $t2, 128($a0)# Head  row 2
+	sw $t2, 132($a0) 
+	sw $t2, 136($a0)
+	
+	sw $t2, 260($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+	sw $t3, 512($a0)
+	sw $t3, 520($a0)
 	jr $ra
 
+DrawCloud:
+	lw $t1, white
+	add $t2, $zero, $zero
+	add $t3, $a0, $zero
+LOOPROW1:
+	beq $t2, 4, Row1Fin
+	sw $t1, 1280($t3)
+	addi $t3, $t3, 4
+	addi $t2, $t2, 1
+	j LOOPROW1
+Row1Fin:
+	add $t2, $zero, $zero
+	add $t3, $a0, $zero
+LOOPROW2:
+	beq $t2, 6, Row2Fin
+	sw $t1, 1408($t3)
+	addi $t3, $t3, 4
+	addi $t2, $t2, 1
+	j LOOPROW2
+Row2Fin:
+	add $t2, $zero, $zero
+	add $t3, $a0, $zero
+LOOPROW3:
+	beq $t2, 5, Row3Fin
+	sw $t1, 1536($t3)
+	addi $t3, $t3, 4
+	addi $t2, $t2, 1
+	j LOOPROW3
+Row3Fin:
+	add $t2, $zero, $zero
+	add $t3, $a0, $zero
+LOOPROW4:
+	beq $t2, 3, Row4Fin
+	sw $t1, 1664($t3)
+	addi $t3, $t3, 4
+	addi $t2, $t2, 1
+	j LOOPROW4
+Row4Fin:
+	jr $ra
+
+DrawBird:
+	lw $t1, bird
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 20($a0)
+	sw $t1, 24($a0)
+	
+	sw $t1, 136($a0)
+	sw $t1, 144($a0)
+	sw $t1, 136($a0)
+	
+	sw $t1, 268($a0)
+	
+	jr $ra
+
+DrawSun:
+	lw $t1, sun
+	
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	sw $t1, 12($a0)
+	
+	addi $t2, $a0, 128
+	add $t3, $zero, $zero
+LOOPSUN1:
+	beq $t3, 5, Sun1Fin
+	sw $t1, 0($t2)
+	addi $t2, $t2, 4
+	addi $t3, $t3, 1
+	j LOOPSUN1
+Sun1Fin:
+	addi $t2, $a0, 256
+	add $t3, $zero, $zero
+LOOPSUN2:
+	beq $t3, 5, Sun2Fin
+	sw $t1, 0($t2)
+	addi $t2, $t2, 4
+	addi $t3, $t3, 1
+	j LOOPSUN2
+Sun2Fin:
+	sw $t1, 388($a0)
+	sw $t1, 392($a0)
+	sw $t1, 396($a0)
+	
+	jr $ra
+	
 # Letters
 
 DrawG:
@@ -834,6 +992,163 @@ Draw9:
 	sw $t1, 516($a0)
 	sw $t1, 520($a0)
 	
+	jr $ra
+
+DrawNameLetter:
+	lw $t1, magenta
+	lw $t2, name
+	beq $t2, 0x61, DrawNameA
+	beq $t2, 0x62, DrawNameB
+	beq $t2, 0x63, DrawNameC
+	
+	jr $ra
+DrawNameA:
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 260($a0)
+	sw $t1, 264($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+	
+	jr $ra
+DrawNameB:
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 260($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+
+DrawNameC:
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	
+	sw $t1, 256($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+	
+	jr $ra
+
+DrawStartScreen:
+	lw $t1, bird
+	add $t2, $zero, $zero
+	add $t3, $t0, $zero
+SSLoop:
+	beq $t2, 1024, SSLoopFin
+	sw $t1, 0($t3)
+	addi $t2, $t2, 1
+	addi $t3, $t3, 4
+	j SSLoop
+SSLoopFin:
+	lw $t1, black
+	
+	# N
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 16($a0)
+	
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	sw $t1, 144($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 268($a0)
+	sw $t1, 272($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 400($a0)
+	
+	sw $t1, 512($a0)
+	sw $t1, 528($a0)
+	
+	addi $a0, $a0, 24
+	
+	# A
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 260($a0)
+	sw $t1, 264($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 392($a0)
+
+	sw $t1, 512($a0)
+	sw $t1, 520($a0)
+	
+	addi $a0, $a0, 16
+	
+	# M
+	sw $t1, 0($a0)
+	sw $t1, 16($a0)
+	
+	sw $t1, 128($a0)
+	sw $t1, 132($a0)
+	sw $t1, 140($a0)
+	sw $t1, 144($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 264($a0)
+	sw $t1, 272($a0)
+	
+	sw $t1, 384($a0)
+	sw $t1, 400($a0)
+	sw $t1, 512($a0)
+	sw $t1, 528($a0)
+	
+	addi $a0, $a0, 24
+
+	# E
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+
+	sw $t1, 128($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 260($a0)
+	sw $t1, 264($a0)
+	
+	sw $t1, 384($a0)
+
+	sw $t1, 512($a0)
+	sw $t1, 516($a0)
+	sw $t1, 520($a0)
+
 	jr $ra
 
 Exit:
