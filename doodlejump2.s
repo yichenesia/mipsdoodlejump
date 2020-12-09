@@ -1,4 +1,9 @@
-# Demo for painting
+#####################################################################
+#
+# CSC258H5S Fall 2020 Assembly Final Project
+# University of Toronto, St. George
+#
+# Student: Yi Chen Zhao, 1005169835
 #
 # Bitmap Display Configuration:
 # - Unit width in pixels: 8
@@ -7,6 +12,33 @@
 # - Display height in pixels: 256
 # - Base Address for Display: 0x10008000 ($gp)
 #
+# Which milestone is reached in this submission?
+# 
+# - Milestone 5 :)
+#
+# Which approved additional features have been implemented?
+# 
+# 0. M1-3 - All required features
+# 1. M4 - Scoreboard, increases with more platforms jumped
+# 2. M4 - Game Over screen / Retry 
+# 3. M5 - Fancier Graphics (Background, doodler)
+# 4. M5 - Enter player name
+# 5. M5 - Dynamic Notifications - Wow! for scores divisible by 10
+# 
+# How to play the game:
+#
+# On the screen with the word "Name" on it, it only accepts two letters: 's' or 'n'
+#  - 's' will immediately start the game
+#  - 'n' will store the next input letter into memory and display it; the accepted
+#    values are only: a, b, c (this is your name) (Input a, b or c after inputting n)
+#
+# Then, press 's' to start the game
+#
+# Use j/k to move left/right
+#
+# At the game over screen, press 'r' to restart. Other keys will exit the game.
+#####################################################################
+
 .data
 	displayAddress: .word 0x10008000
 	orange: .word 0x8c5426
@@ -21,7 +53,7 @@
 	bird: .word 0xF1DFC8
 	sun: .word 0xFFE330
 	
-	p1x: .space 4 #688
+	p1x: .space 4 
 	p1y: .space 4 
 	p2x: .space 4 
 	p2y: .space 4 
@@ -40,7 +72,6 @@
 	add $s2, $zero, $zero # Score counter, min 0, max 99
 	add $s3, $zero, $zero # s3 stores the number of times the doodler has shifted up/down
 	addi $s4, $zero, 1 # s4 stores the status of the doodler; if it's going up or down
-	
 	
 start: 	
 	# Renders the first frames
@@ -144,7 +175,7 @@ CheckCollision:
 	jal ShiftPFDown
 	
 	# TODO: JUMP TO FUNCTION TO START "SHIFTING" DOWN PLATFORM
-	addi $t1, $zero, 640
+	addi $t1, $zero, 512
 	lw $t2, doodlery
 	blt $t2, $t1, ShiftDown # Anything less than 640 in terms of y value will cause shift-downs
 	
@@ -153,7 +184,7 @@ CheckCollision:
 ShiftPFDown:
 	beq $s0, $zero, FinishShifting # If s0, the tracker, is 0, stop shifting
 	
-	addi $t1, $zero, 640 # Keep doodler at a constant Y value while the screen shifts
+	addi $t1, $zero, 512 # Keep doodler at a constant Y value while the screen shifts
 	sw $t1, doodlery
 	
 	lw $t1, p1y # Increase the y value of platform 1
@@ -361,6 +392,62 @@ DrawBGItem:
 	
 	addi $a0, $t0, 168
 	jal DrawSun
+	
+	addi $t1, $zero, 10
+	div $s2, $t1
+	mfhi $t2
+	mflo $t3
+	
+	bne $t2, $zero, DrawPF
+	beq $t3, $zero, DrawPF 
+DrawNotif:
+	add $a0, $t0, 188
+	
+	jal DrawW
+	
+	addi $a0, $t0, 212
+	jal DrawWO
+	
+	addi $a0, $t0, 228
+	
+	jal DrawW
+	
+	j DrawPF
+DrawW:
+	lw $t1, red
+	
+	sw $t1, 0($a0)
+	sw $t1, 8($a0)
+	sw $t1, 16($a0)
+	
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+	sw $t1, 144($a0)
+	
+	sw $t1, 256($a0)
+	sw $t1, 260($a0)
+	sw $t1, 264($a0)
+	sw $t1, 268($a0)
+	sw $t1, 272($a0)
+	
+	jr $ra
+
+DrawWO:
+	lw $t1, red
+	
+	sw $t1, 0($a0)
+	sw $t1, 4($a0)
+	sw $t1, 8($a0)
+	
+	sw $t1, 128($a0)
+	sw $t1, 136($a0)
+
+	sw $t1, 256($a0)
+	sw $t1, 260($a0)
+	sw $t1, 264($a0)
+	
+	jr $ra
+
 DrawPF:
 	lw $t1, p1x # Load the x offset location of the branch into a register
 	lw $t2, p1y
